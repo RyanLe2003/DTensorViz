@@ -58,14 +58,12 @@ class Reduce(Statement):
 class Gather(Statement):
     """Gather operation on a tensor"""
     tensor: Expr
-    dim: list[int]
-    device_group: Expr
+    dst: int
     
     def __eq__(self, other):
         return (type(self) is type(other) and 
-                self.tensor == other.tensor and 
-                self.dim == other.dim and 
-                self.device_group == other.device_group)
+                self.tensor == other.tensor and
+                self.dst == other.dst)
 
 @dataclass
 class Visualize(Statement):

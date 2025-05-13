@@ -54,9 +54,8 @@ class TensorDSLVisitor(NodeVisitor):
     def visit_gather_op(self, node, visited_children):
         logging.debug("in gather_op")
         tensor = visited_children[4]
-        dim = visited_children[8]
-        device_group = visited_children[12]
-        return Gather(tensor, dim, device_group)
+        dst = visited_children[8]
+        return Gather(tensor, dst)
     
     def visit_visualize_op(self, node, visited_children):
         logging.debug("in visualize_op")

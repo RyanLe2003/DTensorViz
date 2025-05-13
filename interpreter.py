@@ -1,73 +1,9 @@
 from AST import *
 import numpy as np
 import logging
+from DistributedTensor import *
 
 all_devices = set()
-
-class DistributedTensor:
-    """Class to simulate a distributed tensor across multiple devices""" 
-    
-    def __init__(self, tensor, device):
-        """
-        Initialize a distributed tensor
-        
-        Args:
-            tensor: The full tensor data (numpy array)
-            device_map: Dictionary mapping device IDs to tensor chunks
-                        If None, the tensor is considered to be on a single device (0)
-        """
-        self.full_tensor = tensor
-        self.device_map = {device: self.full_tensor}
-        self.is_shard = False
-    
-    def shard(self, dim, device_group):
-        if self.is_shard:
-            raise RuntimeError("You cannot shard an already sharded tensor, please use a collective first!")
-        
-        for row in device_group:
-            for device in row:
-                if device not in all_devices:
-                    raise RuntimeError("Device in device group not an initialized device")
-        
-        w_t, h_t = self.full_tensor.shape
-        w_d, h_d = device_group.shape
-            
-        area_dg = w_d * h_d
-        area_tensor = w_t * h_t
-        if  area_dg > area_tensor:
-            raise RuntimeError("More Devices than possible shards")
-        
-        repeat_factors = (w_t // w_d, h_t // h_d)
-    
-        mapped_array = np.tile(device_group, repeat_factors)
-
-        unique_values = np.unique(mapped_array)
-        grouped_elements = {}
-        
-        for value in unique_values:
-            positions = np.where(mapped_array == value)
-        
-            rows, cols = positions
-            unique_rows = np.unique(rows)
-            
-            structured_result = []
-            for row in unique_rows:
-                row_indices = np.where(rows == row)[0]
-                row_cols = cols[row_indices]
-                sorted_indices = np.argsort(row_cols)
-                row_cols = row_cols[sorted_indices]
-                row_indices = row_indices[sorted_indices]
-                
-                row_values = [self.full_tensor[rows[i], cols[i]] for i in row_indices]
-                structured_result.append(row_values)
-            
-            grouped_elements[int(value)] = np.array(structured_result)
-        
-        self.device_map = grouped_elements
-        self.is_shard = True
-    
-    def __repr__(self):
-        return f"DistributedTensor(data={self.full_tensor}, devices={list(self.device_map.keys())})"
 
 def interpret_expr(expr: Expr, bindings: dict):
     """Interpret an expression. Bindings is a dictionary that maps
@@ -132,12 +68,10 @@ def interpret_stmt(stmt: Statement, bindings: dict):
             result = manual_reduce(tensor_val, dst_val, device_group_val)
             return result
         
-        case Gather(tensor=tensor, dim=dim, device_group=device_group):
+        case Gather(tensor=tensor, dst=dst):
             logging.debug("In gather")
             tensor_val = interpret_expr(tensor, bindings)
-            device_group_val = interpret_expr(device_group, bindings)
-            
-            result = manual_gather(tensor_val, dim, device_group_val)
+            result = manual_gather(tensor_val, dst)
             return result
         
         case Visualize(tensor=tensor):
@@ -168,7 +102,7 @@ def interpret_block(block: Block, bindings: dict):
     return result
 
 def manual_shard(tensor, device_group):
-    tensor.shard(tensor, device_group)
+    tensor.shard(device_group, all_devices)
     
 
 def manual_replicate(tensor, device_group):
@@ -177,8 +111,8 @@ def manual_replicate(tensor, device_group):
 def manual_reduce(tensor, dst, device_group):
     pass
 
-def manual_gather(tensor, dim, device_group):
-    pass
+def manual_gather(tensor, dst):
+    tensor.gather(dst, all_devices)
 
 def visualize_tensor(tensor_name, tensor):
     print("\n" + "=" * 40)
