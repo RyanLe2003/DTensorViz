@@ -144,7 +144,7 @@ def interpret_stmt(stmt: Statement, bindings: dict):
             logging.debug("In visualize")
             tensor_val = interpret_expr(tensor, bindings)
             
-            visualize_tensor(tensor_val)
+            visualize_tensor(tensor, tensor_val)
             return None
 
         case InitDevice(device=device):
@@ -180,9 +180,20 @@ def manual_reduce(tensor, dst, device_group):
 def manual_gather(tensor, dim, device_group):
     pass
 
-def visualize_tensor(tensor):
+def visualize_tensor(tensor_name, tensor):
+    print("\n" + "=" * 40)
+    print(f"## {tensor_name} ##".center(40))
+    print("=" * 40)
+    
     for key, val in tensor.device_map.items():
-        print("---------------------------")
-        print(f"Device {key}")
-        print(val.tolist())
-    print("---------------------------")
+        print(f"\nDevice {key}:".ljust(40, "-"))
+        
+        if hasattr(val, 'tolist'):
+            data = val.tolist()
+        else:
+            data = val
+            
+        for row in data:
+            print(str(row).center(40))
+    
+    print("=" * 40 + "\n")
