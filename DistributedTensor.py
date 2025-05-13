@@ -16,16 +16,24 @@ class DistributedTensor:
         self.device_map = {device: self.full_tensor}
         self.cur_dev_group = [[device]]
         self.is_shard = False
+        self.is_replicated = False
     
     def shard(self, device_group, all_devices):
         if self.is_shard:
-            raise RuntimeError("You cannot shard an already sharded tensor, please use a collective first!")
+            raise RuntimeError("You shouldn't shard an already sharded tensor, please use a collective first!")
         
+        devices_being_used = []
         for row in device_group:
             for device in row:
                 if device not in all_devices:
                     raise RuntimeError("Device in device group not an initialized device")
+                
+                devices_being_used.append(device)
         
+        for key, value in self.device_map.items():
+            if key not in devices_being_used:
+                raise RuntimeError("Current tensor device is not included in provided device group")
+
         w_t, h_t = self.full_tensor.shape
         w_d, h_d = device_group.shape
             
@@ -108,8 +116,32 @@ class DistributedTensor:
 
         self.full_tensor = reassembled
         self.device_map = {dst: self.full_tensor}
-        self.cur_dev_group = None
+        self.cur_dev_group = [[dst]]
         self.is_shard = False
+    
+    def replicate(self, device_group, all_devices):
+        if self.is_shard:
+            raise RuntimeError("You shouldn't replicate an already sharded tensor, please use a collective first!")
+         
+        devices_being_used = []
+        for row in device_group:
+            for device in row:
+                if device not in all_devices:
+                    raise RuntimeError("Device in device group not an initialized device")
+                devices_being_used.append(device)
+                
+        for key, value in self.device_map.items():
+            if key not in devices_being_used:
+                raise RuntimeError("Current tensor device is not included in provided device group")
+        
+        new_map = {}
+        for row in device_group:
+            for device in row:
+                new_map[device] = self.full_tensor
+        
+        self.device_map = new_map
+        self.cur_dev_group = device_group
+        self.is_replicated = True
 
     
     def __repr__(self):

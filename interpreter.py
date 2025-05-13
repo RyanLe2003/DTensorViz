@@ -106,7 +106,7 @@ def manual_shard(tensor, device_group):
     
 
 def manual_replicate(tensor, device_group):
-    pass
+    tensor.replicate(device_group, all_devices)
 
 def manual_reduce(tensor, dst, device_group):
     pass

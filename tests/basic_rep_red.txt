@@ -1,0 +1,11 @@
+init_dev(1);
+init_dev(2);
+init_dev(3);
+init_dev(4);
+
+let tensor_rep_ex = tensor([[1, 2], [3, 4]], 1);
+visualize(tensor=tensor_rep_ex);
+
+let dg_1 = devices([[1, 2]]);
+replicate(tensor=tensor_rep_ex, device_group=dg_1);
+visualize(tensor=tensor_rep_ex);

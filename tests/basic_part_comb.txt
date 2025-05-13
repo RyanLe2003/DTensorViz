@@ -4,19 +4,18 @@ init_dev(3);
 init_dev(4);
 
 let tensor_col_ex = tensor([[1, 2], [3, 4]], 1);
+visualize(tensor=tensor_col_ex);
+
 let dg_1 = devices([[1, 2]]);
 shard(tensor=tensor_col_ex, device_group=dg_1);
+visualize(tensor=tensor_col_ex);
 
 let tensor_row_ex = tensor([[1, 2], [3, 4]], 1);
+visualize(tensor=tensor_row_ex);
+
 let dg_2 = devices([[1], [2]]);
 shard(tensor=tensor_row_ex, device_group=dg_2);
-
-let tensor_no_move = tensor([[1, 2], [3, 4]], 4);
-
-visualize(tensor=tensor_col_ex);
 visualize(tensor=tensor_row_ex);
-visualize(tensor=tensor_no_move);
-
 
 gather(tensor=tensor_col_ex, dst=1);
 visualize(tensor=tensor_col_ex);

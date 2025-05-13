@@ -1,0 +1,13 @@
+init_dev(1);
+init_dev(2);
+init_dev(3);
+init_dev(4);
+
+let tensor_col_ex = tensor([[1, 2], [3, 4]], 1);
+
+let dg_1 = devices([[1, 2]]);
+shard(tensor=tensor_col_ex, device_group=dg_1);
+
+let dg_1 = devices([[1, 2], [3, 4]]);
+shard(tensor=tensor_col_ex, device_group=dg_1);
+
