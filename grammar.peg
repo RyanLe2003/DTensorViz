@@ -1,0 +1,46 @@
+program = (statement / emptyline)*
+
+statement = (binding / operation / expr) semicolon
+
+binding = let name equals expr
+
+operation = shard_op / replicate_op / reduce_op / gather_op / visualize_op / init_device
+
+shard_op = "shard" lparen "tensor" equals expr comma "dim" equals dim_list comma "device_group" equals expr rparen
+replicate_op = "replicate" lparen "tensor" equals expr comma "device_group" equals expr rparen
+reduce_op = "reduce" lparen "tensor" equals expr comma "dst" equals expr comma "device_group" equals expr rparen
+gather_op = "gather" lparen "tensor" equals expr comma "dim" equals dim_list comma "device_group" equals expr rparen
+visualize_op = "visualize" lparen "tensor" equals expr rparen
+
+dim_list = lbracket (integer comma)* integer rbracket
+
+init_device = "init_dev" lparen integer rparen
+
+expr = tensor_literal / device_group_literal / variable
+
+tensor_literal = "tensor" lparen tensor_data comma integer rparen
+tensor_data = lbracket (tensor_row comma)* tensor_row rbracket
+tensor_row = lbracket (number comma)* number rbracket
+
+device_group_literal = "devices" lparen device_group_data rparen
+device_group_data = lbracket (device_row comma)* device_row rbracket
+device_row = lbracket (integer comma)* integer rbracket
+
+variable = name
+
+number = float / integer
+float = ~r"-?[0-9]+\.[0-9]+" ws
+integer = ~r"-?[0-9]+" ws
+
+let = "let" ws
+name = ~r"[a-zA-Z]\w*" ws
+equals = "=" ws
+comma = "," ws
+semicolon = ";" ws
+lparen = "(" ws
+rparen = ")" ws
+lbracket = "[" ws
+rbracket = "]" ws
+
+emptyline = ws+
+ws = ~r"\s*"
