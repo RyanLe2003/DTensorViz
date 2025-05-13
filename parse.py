@@ -5,7 +5,7 @@ import numpy as np
 import logging
 import sys
 
-from AST import *  # Import your AST definitions
+from AST import *
 
 class TensorDSLVisitor(NodeVisitor):
     """Visitor for the parse tree"""
@@ -35,9 +35,8 @@ class TensorDSLVisitor(NodeVisitor):
     def visit_shard_op(self, node, visited_children):
         logging.debug("in shard_op")
         tensor = visited_children[4]
-        dim = visited_children[8]
-        device_group = visited_children[12]
-        return Shard(tensor, dim, device_group)
+        device_group = visited_children[8]
+        return Shard(tensor, device_group)
     
     def visit_replicate_op(self, node, visited_children):
         logging.debug("in replicate_op")

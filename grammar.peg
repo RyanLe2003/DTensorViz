@@ -6,13 +6,11 @@ binding = let name equals expr
 
 operation = shard_op / replicate_op / reduce_op / gather_op / visualize_op / init_device
 
-shard_op = "shard" lparen "tensor" equals expr comma "dim" equals dim_list comma "device_group" equals expr rparen
+shard_op = "shard" lparen "tensor" equals expr comma "device_group" equals expr rparen
 replicate_op = "replicate" lparen "tensor" equals expr comma "device_group" equals expr rparen
 reduce_op = "reduce" lparen "tensor" equals expr comma "dst" equals expr comma "device_group" equals expr rparen
-gather_op = "gather" lparen "tensor" equals expr comma "dim" equals dim_list comma "device_group" equals expr rparen
+gather_op = "gather" lparen "tensor" equals expr comma "device_group" equals expr rparen
 visualize_op = "visualize" lparen "tensor" equals expr rparen
-
-dim_list = lbracket (integer comma)* integer rbracket
 
 init_device = "init_dev" lparen integer rparen
 

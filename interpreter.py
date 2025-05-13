@@ -42,19 +42,29 @@ class DistributedTensor:
         mapped_array = np.tile(device_group, repeat_factors)
 
         unique_values = np.unique(mapped_array)
-    
-        # Create a dictionary to store grouped elements
         grouped_elements = {}
         
-        # For each unique value, extract elements from large array
         for value in unique_values:
-            # Use np.where to find matching positions
-            matches = np.where(mapped_array == value)
+            positions = np.where(mapped_array == value)
+        
+            rows, cols = positions
+            unique_rows = np.unique(rows)
             
-            # Extract elements from large array at these positions
-            grouped_elements[int(value)] = self.full_tensor[matches]
+            structured_result = []
+            for row in unique_rows:
+                row_indices = np.where(rows == row)[0]
+                row_cols = cols[row_indices]
+                sorted_indices = np.argsort(row_cols)
+                row_cols = row_cols[sorted_indices]
+                row_indices = row_indices[sorted_indices]
+                
+                row_values = [self.full_tensor[rows[i], cols[i]] for i in row_indices]
+                structured_result.append(row_values)
+            
+            grouped_elements[int(value)] = np.array(structured_result)
         
         self.device_map = grouped_elements
+        self.is_shard = True
     
     def __repr__(self):
         return f"DistributedTensor(data={self.full_tensor}, devices={list(self.device_map.keys())})"
@@ -97,12 +107,12 @@ def interpret_stmt(stmt: Statement, bindings: dict):
             bindings[name] = value
             return None
         
-        case Shard(tensor=tensor, dim=dim, device_group=device_group):
+        case Shard(tensor=tensor, device_group=device_group):
             logging.debug("In shard")
             tensor_val = interpret_expr(tensor, bindings)
             device_group_val = interpret_expr(device_group, bindings)
             
-            result = manual_shard(tensor_val, dim, device_group_val)
+            result = manual_shard(tensor_val, device_group_val)
             return result
         
         case Replicate(tensor=tensor, device_group=device_group):
@@ -157,22 +167,22 @@ def interpret_block(block: Block, bindings: dict):
     
     return result
 
-# Implement these functions based on the raw PyTorch operations
-def manual_shard(tensor, dim, device_group):
-    tensor.shard(dim, device_group)
+def manual_shard(tensor, device_group):
+    tensor.shard(tensor, device_group)
     
 
 def manual_replicate(tensor, device_group):
-    # Implementation using torch.distributed primitives
     pass
 
 def manual_reduce(tensor, dst, device_group):
-    # Implementation using torch.distributed primitives
     pass
 
 def manual_gather(tensor, dim, device_group):
-    # Implementation using torch.distributed primitives
     pass
 
 def visualize_tensor(tensor):
-    print(tensor.device_map)
+    for key, val in tensor.device_map.items():
+        print("---------------------------")
+        print(f"Device {key}")
+        print(val.tolist())
+    print("---------------------------")

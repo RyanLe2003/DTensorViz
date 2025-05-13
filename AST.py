@@ -23,13 +23,11 @@ class Block:
 class Shard(Statement):
     """Shard operation on a tensor"""
     tensor: Expr
-    dim: list[int]
     device_group: Expr
     
     def __eq__(self, other):
         return (type(self) is type(other) and 
                 self.tensor == other.tensor and 
-                self.dim == other.dim and 
                 self.device_group == other.device_group)
 
 @dataclass
