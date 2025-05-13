@@ -46,13 +46,11 @@ class Reduce(Statement):
     """Reduce operation on a tensor"""
     tensor: Expr
     dst: Expr
-    device_group: Expr
     
     def __eq__(self, other):
         return (type(self) is type(other) and 
                 self.tensor == other.tensor and 
-                self.dst == other.dst and 
-                self.device_group == other.device_group)
+                self.dst == other.dst)
 
 @dataclass
 class Gather(Statement):

@@ -8,7 +8,7 @@ operation = shard_op / replicate_op / reduce_op / gather_op / visualize_op / ini
 
 shard_op = "shard" lparen "tensor" equals expr comma "device_group" equals expr rparen
 replicate_op = "replicate" lparen "tensor" equals expr comma "device_group" equals expr rparen
-reduce_op = "reduce" lparen "tensor" equals expr comma "dst" equals expr comma "device_group" equals expr rparen
+reduce_op = "reduce" lparen "tensor" equals expr comma "dst" equals integer rparen
 gather_op = "gather" lparen "tensor" equals expr comma "dst" equals integer rparen
 visualize_op = "visualize" lparen "tensor" equals expr rparen
 

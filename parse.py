@@ -48,8 +48,7 @@ class TensorDSLVisitor(NodeVisitor):
         logging.debug("in reduce_op")
         tensor = visited_children[4]
         dst = visited_children[8]
-        device_group = visited_children[12]
-        return Reduce(tensor, dst, device_group)
+        return Reduce(tensor, dst)
     
     def visit_gather_op(self, node, visited_children):
         logging.debug("in gather_op")

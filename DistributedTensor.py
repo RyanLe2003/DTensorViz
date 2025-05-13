@@ -142,6 +142,28 @@ class DistributedTensor:
         self.device_map = new_map
         self.cur_dev_group = device_group
         self.is_replicated = True
+    
+    def reduce(self, dst, all_devices):
+        if not self.is_replicated:
+            raise RuntimeError("Tensor is not replicated, cannot reduce")
+        
+        found = False
+        for row in self.cur_dev_group:
+            for device in row:
+                if dst == device:
+                    found = True
+        
+        if not found:
+            raise RuntimeError("Provided dst not part of current device group")
+
+        # tensors should all be the same size
+        tensor_list = [value for key, value in self.device_map.items()]
+        result = np.sum(tensor_list, axis=0)
+
+        self.full_tensor = result
+        self.device_map = {dst: self.full_tensor}
+        self.cur_dev_group = [[dst]]
+        self.is_replicated = False
 
     
     def __repr__(self):

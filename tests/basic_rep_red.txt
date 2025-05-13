@@ -9,3 +9,6 @@ visualize(tensor=tensor_rep_ex);
 let dg_1 = devices([[1, 2]]);
 replicate(tensor=tensor_rep_ex, device_group=dg_1);
 visualize(tensor=tensor_rep_ex);
+
+reduce(tensor=tensor_rep_ex, dst=2);
+visualize(tensor=tensor_rep_ex);

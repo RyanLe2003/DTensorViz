@@ -59,13 +59,11 @@ def interpret_stmt(stmt: Statement, bindings: dict):
             result = manual_replicate(tensor_val, device_group_val)
             return result
         
-        case Reduce(tensor=tensor, dst=dst, device_group=device_group):
+        case Reduce(tensor=tensor, dst=dst):
             logging.debug("In reduce")
             tensor_val = interpret_expr(tensor, bindings)
-            dst_val = interpret_expr(dst, bindings)
-            device_group_val = interpret_expr(device_group, bindings)
             
-            result = manual_reduce(tensor_val, dst_val, device_group_val)
+            result = manual_reduce(tensor_val, dst)
             return result
         
         case Gather(tensor=tensor, dst=dst):
@@ -108,8 +106,8 @@ def manual_shard(tensor, device_group):
 def manual_replicate(tensor, device_group):
     tensor.replicate(device_group, all_devices)
 
-def manual_reduce(tensor, dst, device_group):
-    pass
+def manual_reduce(tensor, dst):
+    tensor.reduce(dst, all_devices)
 
 def manual_gather(tensor, dst):
     tensor.gather(dst, all_devices)
