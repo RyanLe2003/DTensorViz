@@ -82,7 +82,7 @@ class TensorDSLVisitor(NodeVisitor):
     def visit_tensor_literal(self, node, visited_children):
         logging.debug("in tensor_literal")
         data = visited_children[2]
-        device = visited_children[4]
+        device = visited_children[6]
         return TensorLiteral(np.array(data), device)
     
     def visit_tensor_data(self, node, visited_children):

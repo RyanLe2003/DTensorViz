@@ -3,14 +3,14 @@ init_dev(2);
 init_dev(3);
 init_dev(4);
 
-let tensor_col_ex = tensor([[1, 2], [3, 4]], 1);
+let tensor_col_ex = tensor([[1, 2], [3, 4]], dev=1);
 visualize(tensor=tensor_col_ex);
 
 let dg_1 = devices([[1, 2]]);
 shard(tensor=tensor_col_ex, device_group=dg_1);
 visualize(tensor=tensor_col_ex);
 
-let tensor_row_ex = tensor([[1, 2], [3, 4]], 1);
+let tensor_row_ex = tensor([[1, 2], [3, 4]], dev=1);
 visualize(tensor=tensor_row_ex);
 
 let dg_2 = devices([[1], [2]]);

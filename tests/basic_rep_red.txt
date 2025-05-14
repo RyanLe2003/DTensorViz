@@ -3,7 +3,7 @@ init_dev(2);
 init_dev(3);
 init_dev(4);
 
-let tensor_rep_ex = tensor([[1, 2], [3, 4]], 1);
+let tensor_rep_ex = tensor([[1, 2], [3, 4]], dev=1);
 visualize(tensor=tensor_rep_ex);
 
 let dg_1 = devices([[1, 2]]);

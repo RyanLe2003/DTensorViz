@@ -16,7 +16,7 @@ init_device = "init_dev" lparen integer rparen
 
 expr = tensor_literal / device_group_literal / variable
 
-tensor_literal = "tensor" lparen tensor_data comma integer rparen
+tensor_literal = "tensor" lparen tensor_data comma "dev" equals integer rparen
 tensor_data = lbracket (tensor_row comma)* tensor_row rbracket
 tensor_row = lbracket (number comma)* number rbracket
 
