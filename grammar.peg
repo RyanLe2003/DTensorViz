@@ -1,20 +1,22 @@
 program = (statement / emptyline)*
 
-statement = (binding / operation / expr) semicolon
+statement = (binding / operation / simple_expr) semicolon
 
 binding = let name equals expr
 
-operation = shard_op / replicate_op / reduce_op / gather_op / visualize_op / init_device
+operation = shard_op / replicate_op / reduce_op / gather_op / visualize_op / init_device / matmul_op
 
 shard_op = "shard" lparen "tensor" equals expr comma "device_group" equals expr rparen
 replicate_op = "replicate" lparen "tensor" equals expr comma "device_group" equals expr rparen
 reduce_op = "reduce" lparen "tensor" equals expr comma "dst" equals integer rparen
 gather_op = "gather" lparen "tensor" equals expr comma "dst" equals integer rparen
 visualize_op = "visualize" lparen "tensor" equals expr rparen
+matmul_op = "matmul" lparen expr comma expr rparen 
 
 init_device = "init_dev" lparen integer rparen
 
-expr = tensor_literal / device_group_literal / variable
+expr = operation / simple_expr
+simple_expr = tensor_literal / device_group_literal / variable
 
 tensor_literal = "tensor" lparen tensor_data comma "dev" equals integer rparen
 tensor_data = lbracket (tensor_row comma)* tensor_row rbracket

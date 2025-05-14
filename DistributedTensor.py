@@ -3,7 +3,7 @@ import numpy as np
 class DistributedTensor:
     """Class to simulate a distributed tensor across multiple devices""" 
     
-    def __init__(self, tensor, device):
+    def __init__(self, tensor=None, device=None):
         """
         Initialize a distributed tensor
         
@@ -12,8 +12,8 @@ class DistributedTensor:
             device_map: Dictionary mapping device IDs to tensor chunks
                         If None, the tensor is considered to be on a single device (0)
         """
-        self.full_tensor = tensor
-        self.device_map = {device: self.full_tensor}
+        self.__full_tensor = tensor  # programmers shouldn't be able to access this
+        self.device_map = {device: self.__full_tensor}
         self.cur_dev_group = [[device]]
         self.is_shard = False
         self.is_replicated = False
@@ -34,7 +34,7 @@ class DistributedTensor:
             if key not in devices_being_used:
                 raise RuntimeError("Current tensor device is not included in provided device group")
 
-        w_t, h_t = self.full_tensor.shape
+        w_t, h_t = self.__full_tensor.shape
         w_d, h_d = device_group.shape
             
         area_dg = w_d * h_d
@@ -63,7 +63,7 @@ class DistributedTensor:
                 row_cols = row_cols[sorted_indices]
                 row_indices = row_indices[sorted_indices]
                 
-                row_values = [self.full_tensor[rows[i], cols[i]] for i in row_indices]
+                row_values = [self.__full_tensor[rows[i], cols[i]] for i in row_indices]
                 structured_result.append(row_values)
             
             grouped_elements[int(value)] = np.array(structured_result)
@@ -85,13 +85,22 @@ class DistributedTensor:
         if not found:
             raise RuntimeError("Provided dst not part of current device group")
         
-        w_t, h_t = self.full_tensor.shape
+        # w_t, h_t = self.__full_tensor.shape
         w_d, h_d = self.cur_dev_group.shape
+
+        # Get a sample shard to determine dimensions
+        sample_device = list(self.device_map.keys())[0]
+        sample_shard = self.device_map[sample_device]
+        shard_rows, shard_cols = sample_shard.shape
+        
+        # Calculate full tensor dimensions
+        w_t = w_d * shard_rows
+        h_t = h_d * shard_cols
         
         repeat_factors = (w_t // w_d, h_t // h_d)
         mapped_array = np.tile(self.cur_dev_group, repeat_factors)
         
-        reassembled = np.zeros_like(self.full_tensor)
+        reassembled = np.zeros_like((w_t, h_t))
         
         for device_id, device_data in self.device_map.items():
             positions = np.where(mapped_array == device_id)
@@ -114,8 +123,8 @@ class DistributedTensor:
                     reassembled[current_row, current_col] = device_data[data_row_idx, data_col_idx]
                     data_col_idx += 1
 
-        self.full_tensor = reassembled
-        self.device_map = {dst: self.full_tensor}
+        self.__full_tensor = reassembled
+        self.device_map = {dst: self.__full_tensor}
         self.cur_dev_group = [[dst]]
         self.is_shard = False
     
@@ -137,7 +146,7 @@ class DistributedTensor:
         new_map = {}
         for row in device_group:
             for device in row:
-                new_map[device] = self.full_tensor
+                new_map[device] = self.__full_tensor
         
         self.device_map = new_map
         self.cur_dev_group = device_group
@@ -160,11 +169,11 @@ class DistributedTensor:
         tensor_list = [value for key, value in self.device_map.items()]
         result = np.sum(tensor_list, axis=0)
 
-        self.full_tensor = result
-        self.device_map = {dst: self.full_tensor}
+        self.__full_tensor = result
+        self.device_map = {dst: self.__full_tensor}
         self.cur_dev_group = [[dst]]
         self.is_replicated = False
 
     
     def __repr__(self):
-        return f"DistributedTensor(data={self.full_tensor}, devices={list(self.device_map.keys())})"
+        return f"DistributedTensor(data={self.__full_tensor}, devices={list(self.device_map.keys())})"

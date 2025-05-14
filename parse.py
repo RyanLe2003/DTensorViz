@@ -60,6 +60,12 @@ class TensorDSLVisitor(NodeVisitor):
         logging.debug("in visualize_op")
         tensor = visited_children[4]
         return Visualize(tensor)
+    
+    def visit_matmul_op(self, node, visited_children):
+        logging.debug("in matmul_op")
+        tensor_one = visited_children[2]
+        tensor_two = visited_children[4]
+        return Matmul(tensor_one, tensor_two)
 
     def visit_init_device(self, node, visited_children):
         logging.debug("in init_device")
@@ -77,6 +83,10 @@ class TensorDSLVisitor(NodeVisitor):
     
     def visit_expr(self, node, visited_children):
         logging.debug("in expr")
+        return visited_children[0]
+    
+    def visit_simple_expr(self, node, visited_children):
+        logging.debug("in simple_expr")
         return visited_children[0]
     
     def visit_tensor_literal(self, node, visited_children):
