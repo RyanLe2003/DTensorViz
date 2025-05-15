@@ -42,6 +42,9 @@ class DistributedTensor:
         if  area_dg > area_tensor:
             raise RuntimeError("More Devices than possible shards")
         
+        if (w_t % w_d != 0) or (h_t % h_d != 0):
+            raise RuntimeError("Tensor dimensions are not evenly divisible by device group dimensions, uneven sharding not allowed.")
+        
         repeat_factors = (w_t // w_d, h_t // h_d)
     
         mapped_array = np.tile(device_group, repeat_factors)
@@ -99,8 +102,8 @@ class DistributedTensor:
         
         repeat_factors = (w_t // w_d, h_t // h_d)
         mapped_array = np.tile(self.cur_dev_group, repeat_factors)
-        
-        reassembled = np.zeros_like((w_t, h_t))
+
+        reassembled = np.zeros((w_t, h_t))
         
         for device_id, device_data in self.device_map.items():
             positions = np.where(mapped_array == device_id)

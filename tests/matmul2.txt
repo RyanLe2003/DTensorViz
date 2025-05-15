@@ -2,21 +2,18 @@ init_dev(1);
 init_dev(2);
 
 let tensor_one = tensor([[1, 2], [3, 4]], dev=1);
-let tensor_two = tensor([[2, 0], [0, 2]], dev=1);
-
-let new_tensor = matmul(tensor_one, tensor_two);
-visualize(tensor=new_tensor);
+let tensor_two = tensor([[2]], dev=1);
 
 let dg_1 = devices([[1, 2]]);
 shard(tensor=tensor_one, device_group=dg_1);
 
-let dg_2 = devices([[1], [2]]);
-shard(tensor=tensor_two, device_group=dg_2);
+let dg_2 = devices([[1, 2]]);
+replicate(tensor=tensor_two, device_group=dg_2);
 
 let split_matmul = matmul(tensor_one, tensor_two);
 visualize(tensor=split_matmul);
 
-reduce(tensor=split_matmul, dst=1);
+gather(tensor=split_matmul, dst=1);
 visualize(tensor=split_matmul);
 
 
