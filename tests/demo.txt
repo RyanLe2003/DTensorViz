@@ -1,0 +1,8 @@
+init_dev(1);
+init_dev(2);
+
+let tensor = tensor([[1, 2], [3, 4]], dev=1);
+
+let dg_1 = devices([[1, 2]]);
+shard(tensor=tensor, device_group=dg_1);
+visualize(tensor=tensor);

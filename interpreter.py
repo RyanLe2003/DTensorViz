@@ -78,8 +78,11 @@ def interpret_stmt(stmt: Statement, bindings: dict):
         case Visualize(tensor=tensor):
             logging.debug("In visualize")
             tensor_val = interpret_expr(tensor, bindings)
+
+            device_group = tensor_val.cur_dev_group
+            device_slices = extract_device_slices(device_group, tensor_val.full_tensor.shape)
             
-            visualize_tensor(tensor, tensor_val)
+            visualize_tensor(tensor, tensor_val, device_slices)
             return None
 
         case InitDevice(device=device):
@@ -142,8 +145,9 @@ def manual_matmul(tensor_one, tensor_two):
         new_map[device] = res
 
     # need to update shape (only really matters for partition though): device_group
-    new_tensor = DistributedTensor()
+    new_tensor = DistributedTensor(res)
     new_tensor.device_map = new_map
+    # new_tensor.full_tensor = res
 
     # Inherit device group structure from first tensor (This is a design choice that I might change)
     new_tensor.cur_dev_group = tensor_one.cur_dev_group
@@ -161,20 +165,83 @@ def manual_matmul(tensor_one, tensor_two):
 
     return new_tensor
 
-def visualize_tensor(tensor_name, tensor):
-    print("\n" + "=" * 40)
-    print(f"## {tensor_name} ##".center(40))
-    print("=" * 40)
+# def visualize_tensor(tensor_name, tensor):
+#     print("\n" + "=" * 40)
+#     print(f"## {tensor_name} ##".center(40))
+#     print("=" * 40)
     
-    for key, val in tensor.device_map.items():
-        print(f"\nDevice {key}:".ljust(40, "-"))
+#     for key, val in tensor.device_map.items():
+#         print(f"\nDevice {key}:".ljust(40, "-"))
         
-        if hasattr(val, 'tolist'):
-            data = val.tolist()
-        else:
-            data = val
+#         if hasattr(val, 'tolist'):
+#             data = val.tolist()
+#         else:
+#             data = val
             
-        for row in data:
-            print(str(row).center(40))
+#         for row in data:
+#             print(str(row).center(40))
     
-    print("=" * 40 + "\n")
+#     print("=" * 40 + "\n")
+
+import matplotlib.pyplot as plt
+
+def extract_device_slices(device_group, full_tensor_shape):
+    if isinstance(device_group, list):
+        device_group = np.array(device_group)
+    w_t, h_t = full_tensor_shape
+    w_d, h_d = device_group.shape
+    row_shard = w_t // w_d
+    col_shard = h_t // h_d
+
+    device_slices = {}
+    for i in range(w_d):
+        for j in range(h_d):
+            device = device_group[i, j]
+            row_start = i * row_shard
+            row_end = (i + 1) * row_shard
+            col_start = j * col_shard
+            col_end = (j + 1) * col_shard
+            device_slices[device] = (slice(row_start, row_end), slice(col_start, col_end))
+    return device_slices
+
+def visualize_tensor(tensor_name, tensor, device_slices=None):
+    full_tensor = tensor.full_tensor
+    full_shape = full_tensor.shape
+    device_map = tensor.device_map
+    num_devices = len(device_map)
+
+    # Check for replication
+    is_replicated = all(
+        (chunk.shape == full_shape) and np.array_equal(chunk, full_tensor)
+        for chunk in device_map.values()
+    )
+
+    # Gather all data for global color normalization
+    all_chunks = [chunk for chunk in device_map.values()]
+    global_min = min(chunk.min() for chunk in all_chunks)
+    global_max = max(chunk.max() for chunk in all_chunks)
+
+    fig, axes = plt.subplots(1, num_devices, figsize=(5 * num_devices, 5), squeeze=False)
+    fig.suptitle(f"Tensor Distribution: {tensor_name}", fontsize=22)
+    cmap = plt.cm.viridis.copy()
+    cmap.set_bad(color='lightgray')
+
+    for ax, (device, chunk) in zip(axes[0], device_map.items()):
+        if is_replicated:
+            display_array = full_tensor.astype(float)
+        else:
+            display_array = np.full(full_shape, np.nan, dtype=float)
+            if device_slices is None:
+                raise ValueError("device_slices must be provided for partitioned tensors.")
+            indices = device_slices[device]
+
+            display_array[indices] = chunk
+
+        im = ax.imshow(display_array, cmap=cmap, vmin=global_min, vmax=global_max)
+        ax.set_title(f"Device {device}", fontsize=16)
+        ax.set_xlabel("Columns", fontsize=14)
+        ax.set_ylabel("Rows", fontsize=14)
+        fig.colorbar(im, ax=ax, orientation='vertical')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.show()

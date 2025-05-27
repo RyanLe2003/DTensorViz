@@ -6,9 +6,11 @@ let tensor_two = tensor([[2]], dev=1);
 
 let dg_1 = devices([[1, 2]]);
 shard(tensor=tensor_one, device_group=dg_1);
+visualize(tensor=tensor_one);
 
 let dg_2 = devices([[1, 2]]);
 replicate(tensor=tensor_two, device_group=dg_2);
+visualize(tensor=tensor_two);
 
 let split_matmul = matmul(tensor_one, tensor_two);
 visualize(tensor=split_matmul);
