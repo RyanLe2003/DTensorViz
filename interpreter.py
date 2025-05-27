@@ -2,6 +2,7 @@ from AST import *
 import numpy as np
 import logging
 from DistributedTensor import *
+import matplotlib.pyplot as plt
 
 all_devices = set()
 
@@ -147,43 +148,25 @@ def manual_matmul(tensor_one, tensor_two):
     # need to update shape (only really matters for partition though): device_group
     new_tensor = DistributedTensor(res)
     new_tensor.device_map = new_map
-    # new_tensor.full_tensor = res
 
     # Inherit device group structure from first tensor (This is a design choice that I might change)
     new_tensor.cur_dev_group = tensor_one.cur_dev_group
 
     new_tensor.is_shard = False
     new_tensor.is_replicated = False
-    if (tensor_one.is_shard and tensor_two.is_shard):
+    if (tensor_one.is_replicated and tensor_two.is_replicated):
         new_tensor.is_replicated = True
-    elif (tensor_one.is_shard or tensor_two.is_shard):
-        new_tensor.is_replicated = True
+    elif (tensor_one.is_shard and tensor_two.is_shard):
+        new_tensor.is_replicated = True 
+    elif (tensor_one.is_shard and not tensor_two.is_shard):
         new_tensor.is_shard = True
-    
-    if (tensor_one.is_replicated and tensor_two.is_replicated):  # this should always be true if at least one is
-        new_tensor.is_replicated = True
-
+        new_tensor.cur_dev_group = tensor_one.cur_dev_group
+        new_tensor.full_tensor = tensor_one.full_tensor  # a little hacky for now
+    elif (not tensor_one.is_shard and tensor_two.is_shard):
+        new_tensor.is_shard = True
+        new_tensor.cur_dev_group = tensor_two.cur_dev_group
+        new_tensor.full_tensor = tensor_two.full_tensor  # a little hacky for now
     return new_tensor
-
-# def visualize_tensor(tensor_name, tensor):
-#     print("\n" + "=" * 40)
-#     print(f"## {tensor_name} ##".center(40))
-#     print("=" * 40)
-    
-#     for key, val in tensor.device_map.items():
-#         print(f"\nDevice {key}:".ljust(40, "-"))
-        
-#         if hasattr(val, 'tolist'):
-#             data = val.tolist()
-#         else:
-#             data = val
-            
-#         for row in data:
-#             print(str(row).center(40))
-    
-#     print("=" * 40 + "\n")
-
-import matplotlib.pyplot as plt
 
 def extract_device_slices(device_group, full_tensor_shape):
     if isinstance(device_group, list):
@@ -209,12 +192,7 @@ def visualize_tensor(tensor_name, tensor, device_slices=None):
     full_shape = full_tensor.shape
     device_map = tensor.device_map
     num_devices = len(device_map)
-
-    # Check for replication
-    is_replicated = all(
-        (chunk.shape == full_shape) and np.array_equal(chunk, full_tensor)
-        for chunk in device_map.values()
-    )
+    is_replicated = tensor.is_replicated
 
     # Gather all data for global color normalization
     all_chunks = [chunk for chunk in device_map.values()]
@@ -228,7 +206,7 @@ def visualize_tensor(tensor_name, tensor, device_slices=None):
 
     for ax, (device, chunk) in zip(axes[0], device_map.items()):
         if is_replicated:
-            display_array = full_tensor.astype(float)
+            display_array = chunk
         else:
             display_array = np.full(full_shape, np.nan, dtype=float)
             if device_slices is None:
@@ -239,9 +217,31 @@ def visualize_tensor(tensor_name, tensor, device_slices=None):
 
         im = ax.imshow(display_array, cmap=cmap, vmin=global_min, vmax=global_max)
         ax.set_title(f"Device {device}", fontsize=16)
-        ax.set_xlabel("Columns", fontsize=14)
-        ax.set_ylabel("Rows", fontsize=14)
-        fig.colorbar(im, ax=ax, orientation='vertical')
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+
+        for (i, j), value in np.ndenumerate(display_array):
+            if not np.isnan(value):
+                ax.text(j, i, f"{int(value)}", ha="center", va="center", color="black", fontsize=14)
+    
+    print("\n" + "=" * 40)
+    print(f"## {tensor_name} ##".center(40))
+    print("=" * 40)
+    
+    for key, val in tensor.device_map.items():
+        print(f"\nDevice {key}:".ljust(40, "-"))
+        
+        if hasattr(val, 'tolist'):
+            data = val.tolist()
+        else:
+            data = val
+            
+        for row in data:
+            print(str(row).center(40))
+    
+    print("=" * 40 + "\n")
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.show()
