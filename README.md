@@ -1,6 +1,23 @@
 # DTensorViz
 DTensorViz is a domain specific language designed to help users learn and visualize operations on tensors, particularly operations that could be distributed in the context of distributed neural networks. Currently, DTensorViz supports only 2-dimensional tensors.
 
+## Installation
+Before running this project, you need to install the following Python packages:
+-numpy
+-matplotlib
+-parsimonious
+
+You can install all required dependencies with:
+```
+pip install numpy matplotlib parsimonious
+```
+
+Alternatively, you can install all dependencies at once with:
+```
+pip install -r requirements.txt
+```
+
+
 ## Initializing a device
 Distributed training (operations) typically require at least two devices to parallelize computation. DTensorViz circumvents this by simulating devices as no true parallelization is needed for visualization, and DTensorViz is not designed for training. To create a device, call `init_dev`. `init_dev` requires you to provide a unique identifier (int) as a parameter.
 
