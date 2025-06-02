@@ -67,6 +67,12 @@ class TensorDSLVisitor(NodeVisitor):
         tensor_two = visited_children[4]
         return Matmul(tensor_one, tensor_two)
 
+    def visit_relu_op(self, node, visited_children):
+        logging.debug("in relu op")
+
+        tensor = visited_children[2]
+        return Relu(tensor)
+
     def visit_init_device(self, node, visited_children):
         logging.debug("in init_device")
         device_id = visited_children[2]

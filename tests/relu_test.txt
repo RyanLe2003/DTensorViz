@@ -1,0 +1,31 @@
+init_dev(0);
+
+let test_tensor_1 = tensor([[2, -3, 0, 5], [-1, 4, -2, 3]], dev=0);
+let relu_result_1 = relu(test_tensor_1);
+visualize(tensor=relu_result_1);
+
+let test_tensor_2 = tensor([[-1, -2, -3], [-4, -5, -10]], dev=0);
+let relu_result_2 = relu(test_tensor_2);
+visualize(tensor=relu_result_2);
+
+let test_tensor_3 = tensor([[1, 2, 3], [4, 5, 10]], dev=0);
+let relu_result_3 = relu(test_tensor_3);
+visualize(tensor=relu_result_3);
+
+let test_tensor_4 = tensor([[0, 0], [0, 0]], dev=0);
+let relu_result_4 = relu(test_tensor_4);
+visualize(tensor=relu_result_4);
+
+let test_tensor_5 = tensor([[-5]], dev=0);
+let relu_result_5 = relu(test_tensor_5);
+visualize(tensor=relu_result_5);
+
+let base_tensor = tensor([[2, -1], [-3, 4]], dev=0);
+let other_tensor = tensor([[1, 2], [3, -1]], dev=0);
+let matmul_result = matmul(base_tensor, other_tensor);
+let final_result = relu(matmul_result);
+visualize(tensor=final_result);
+
+let large_tensor = tensor([[100, -200], [-50, 75]], dev=0);
+let relu_large = relu(large_tensor);
+visualize(tensor=relu_large);

@@ -4,7 +4,7 @@ statement = (binding / operation / simple_expr) semicolon
 
 binding = let name equals expr
 
-operation = shard_op / replicate_op / reduce_op / gather_op / visualize_op / init_device / matmul_op
+operation = shard_op / replicate_op / reduce_op / gather_op / visualize_op / init_device / matmul_op / relu_op
 
 shard_op = "shard" lparen "tensor" equals expr comma "device_group" equals expr rparen
 replicate_op = "replicate" lparen "tensor" equals expr comma "device_group" equals expr rparen
@@ -12,6 +12,7 @@ reduce_op = "reduce" lparen "tensor" equals expr comma "dst" equals integer rpar
 gather_op = "gather" lparen "tensor" equals expr comma "dst" equals integer rparen
 visualize_op = "visualize" lparen "tensor" equals expr rparen
 matmul_op = "matmul" lparen expr comma expr rparen 
+relu_op = "relu" lparen expr rparen
 
 init_device = "init_dev" lparen integer rparen
 

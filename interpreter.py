@@ -97,6 +97,13 @@ def interpret_stmt(stmt: Statement, bindings: dict):
             tensor_two = interpret_expr(tensor_two, bindings)
             result = manual_matmul(tensor_one, tensor_two)
             return result
+        
+        case Relu(tensor=tensor):
+            logging.debug("In relu")
+            tensor = interpret_expr(tensor, bindings)
+            result = manual_relu(tensor)
+
+            return result
 
 
 def interpret_block(block: Block, bindings: dict):
@@ -166,6 +173,51 @@ def manual_matmul(tensor_one, tensor_two):
         new_tensor.is_shard = True
         new_tensor.cur_dev_group = tensor_two.cur_dev_group
         new_tensor.full_tensor = tensor_two.full_tensor  # a little hacky for now
+    return new_tensor
+
+def manual_relu(distributed_tensor):
+    tensor = distributed_tensor.full_tensor
+    rows = len(tensor)
+    cols = len(tensor[0])
+    result = []
+    
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            if tensor[i][j] > 0:
+                row.append(tensor[i][j])
+            else:
+                row.append(0)  # Use integer 0 instead of 0.0 for consistency
+        result.append(row)
+
+    # Create new DistributedTensor with ReLU applied
+    result_array = np.array(result)
+    new_tensor = DistributedTensor(result_array)
+
+
+    new_device_map = {}
+    for device, local_tensor in distributed_tensor.device_map.items():
+        local_rows = len(local_tensor)
+        local_cols = len(local_tensor[0])
+        local_result = []
+        
+        for i in range(local_rows):
+            row = []
+            for j in range(local_cols):
+                if local_tensor[i][j] > 0:
+                    row.append(local_tensor[i][j])
+                else:
+                    row.append(0)
+            local_result.append(row)
+        
+        new_device_map[device] = np.array(local_result)
+    
+    # Preserve the distribution properties
+    new_tensor.device_map = new_device_map
+    new_tensor.cur_dev_group = distributed_tensor.cur_dev_group
+    new_tensor.is_shard = distributed_tensor.is_shard
+    new_tensor.is_replicated = distributed_tensor.is_replicated
+    
     return new_tensor
 
 def extract_device_slices(device_group, full_tensor_shape):

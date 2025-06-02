@@ -88,6 +88,15 @@ class Matmul(Statement):
                 self.tensor_one == other.tensor_one and
                 self.tensor_two == other.tensor_two)
 
+@dataclass
+class Relu(Statement):
+    tensor: Expr
+
+    def __eq__(self, other):
+        return (type(self) is type(other) and 
+                self.tensor == other.tensor)
+
+
 # Basic expressions
 @dataclass
 class TensorLiteral(Expr):
