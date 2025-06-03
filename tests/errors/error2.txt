@@ -1,0 +1,2 @@
+let x = devices([[0, 1]]);
+shard(tensor=x, device_group=devices([[0, 1]]));

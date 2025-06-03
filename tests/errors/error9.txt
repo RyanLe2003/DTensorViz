@@ -1,0 +1,2 @@
+let t = tensor([[1]], dev=0);
+gather(tensor=t, dst=t);

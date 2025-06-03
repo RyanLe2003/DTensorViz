@@ -1,0 +1,2 @@
+let dg = devices([[0]]);
+matmul(dg, dg);

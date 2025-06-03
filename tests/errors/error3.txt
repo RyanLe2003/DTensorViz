@@ -1,0 +1,2 @@
+let t = tensor([[1, 2]], dev=0);
+replicate(tensor=t, device_group=t);

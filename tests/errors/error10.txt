@@ -1,0 +1,2 @@
+let x = tensor([[1]], dev=0);
+shard(tensor=x, device_group=x);
