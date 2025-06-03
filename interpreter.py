@@ -153,6 +153,7 @@ def manual_matmul(tensor_one, tensor_two):
         new_map[device] = res
 
     # need to update shape (only really matters for partition though): device_group
+    
     new_tensor = DistributedTensor(res)
     new_tensor.device_map = new_map
 
@@ -163,6 +164,8 @@ def manual_matmul(tensor_one, tensor_two):
     new_tensor.is_replicated = False
     if (tensor_one.is_replicated and tensor_two.is_replicated):
         new_tensor.is_replicated = True
+        real = np.matmul(tensor_one.full_tensor, tensor_two.full_tensor)
+        new_tensor.full_tensor = real
     elif (tensor_one.is_shard and tensor_two.is_shard):
         new_tensor.is_replicated = True 
     elif (tensor_one.is_shard and not tensor_two.is_shard):
@@ -172,7 +175,8 @@ def manual_matmul(tensor_one, tensor_two):
     elif (not tensor_one.is_shard and tensor_two.is_shard):
         new_tensor.is_shard = True
         new_tensor.cur_dev_group = tensor_two.cur_dev_group
-        new_tensor.full_tensor = tensor_two.full_tensor  # a little hacky for now
+        real = np.matmul(tensor_one.full_tensor, tensor_two.full_tensor)
+        new_tensor.full_tensor = real
     return new_tensor
 
 def manual_relu(distributed_tensor):
@@ -187,7 +191,7 @@ def manual_relu(distributed_tensor):
             if tensor[i][j] > 0:
                 row.append(tensor[i][j])
             else:
-                row.append(0)  # Use integer 0 instead of 0.0 for consistency
+                row.append(0)
         result.append(row)
 
     # Create new DistributedTensor with ReLU applied

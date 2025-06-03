@@ -17,6 +17,7 @@ shard(tensor=weight_1, device_group=dev_col);
 visualize(tensor=weight_1);
 
 let layer_1 = matmul(input, weight_1);
+visualize(tensor=layer_1);
 reduce(tensor=layer_1, dst=0);
 replicate(tensor=layer_1, device_group=dev_row);
 
