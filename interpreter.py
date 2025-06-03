@@ -44,7 +44,7 @@ def interpret_stmt(stmt: Statement, bindings: dict):
         case Let(name=name, value=expr):
             logging.debug("In let")
             value = interpret_expr(expr, bindings)
-            bindings[name] = value
+            bindings[name.name] = value
             return None
         
         case Shard(tensor=tensor, device_group=device_group):

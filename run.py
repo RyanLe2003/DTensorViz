@@ -2,6 +2,7 @@ import numpy as np
 import sys
 from parse import parse
 from interpreter import interpret_block
+from typ import TypeChecker
 
 import logging
 
@@ -17,6 +18,7 @@ def main():
     logging.debug("DONE WITH PARSING")
 
     # type_block(ast, bindings, declarations)
+    TypeChecker().check_block(ast)
 
     logging.debug("DONE WITH TYPE CHECKING")
     bindings = {}

@@ -160,7 +160,7 @@ class TensorDSLVisitor(NodeVisitor):
     
     def visit_name(self, node, visited_children):
         logging.debug("in name")
-        return node.text.strip()
+        return Variable(node.text.strip())
         
     def visit_emptyline(self, node, visited_children):
         logging.debug("in emptyline")
