@@ -20,6 +20,7 @@ let layer_1 = matmul(input, weight_1);
 visualize(tensor=layer_1);
 reduce(tensor=layer_1, dst=0);
 replicate(tensor=layer_1, device_group=dev_row);
+visualize(tensor=layer_1);
 
 let relu1 = relu(layer_1);
 

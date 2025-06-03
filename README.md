@@ -1,5 +1,5 @@
 # DTensorViz
-DTensorViz is a domain specific language designed to help users learn and visualize operations on tensors, particularly operations that could be distributed in the context of distributed neural networks. Currently, DTensorViz supports only 2-dimensional tensors.
+DTensorViz is a domain specific language designed to help users learn and visualize operations on tensors, particularly operations that could be distributed in the context of distributed neural networks. Currently, DTensorViz supports only 2-dimensional tensors. For a more detailed breakdown of the language see [Documentation](docs/DTensorViz.pdf).
 
 ## Installation
 Before running this project, you need to install the following Python packages:
@@ -40,7 +40,7 @@ The devices included in the list must be devices that have already been initiali
 let device_group_name = devices([[1, 2]]);
 ```
 
-## Performing parllel operations on a tensor
+## Performing parallel operations on a tensor
 
 DTensorViz currently supports the following parallelization operations:
 
@@ -81,12 +81,6 @@ Multiplies two tensors using standard matrix multiplication rules and returns a 
 let new_tensor = matmul(tensor_one, tensor_two);
 ```
 
-### RELU
-Performs a the relu activation function and returns a new tensor. To perform relu use `relu`.
-```
-let new_tensor = relu(tensor_one);
-```
-
 #### Note: Matrix multiplication on distributed tensors
 
 When performing matrix multiplication on distributed tensors, the parallelization (sharding or replication) of the result depends on the parallelization of the input tensors:
@@ -101,6 +95,13 @@ When performing matrix multiplication on distributed tensors, the parallelizatio
 |None | None | None |
 
 
+### RELU
+Performs the relu activation function and returns a new tensor. To perform relu use `relu`.
+```
+let new_tensor = relu(tensor_one);
+```
+
+
 ## Visualizing a tensor
 
 Displays the current state of a tensor for inspection and learning. To visualize a tensor use `visualize`.
@@ -110,6 +111,7 @@ visualize(tensor=my_tensor);
 ```
 
 ## Getting Started Examples
+Below are a couple basic examples of programs in DTensorViz. All of which can be found in the demo folder.
 
 ### Shard and Combine
 
@@ -164,6 +166,7 @@ visualize(tensor=tensor_rep_ex);
 ```
 
 ## Advanced Examples
+Below are a couple advanced examples of programs in DTensorViz. All of which can be found in the demo folder.
 
 ### Data Parallelism
 
