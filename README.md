@@ -81,6 +81,12 @@ Multiplies two tensors using standard matrix multiplication rules and returns a 
 let new_tensor = matmul(tensor_one, tensor_two);
 ```
 
+### RELU
+Performs a the relu activation function and returns a new tensor. To perform relu use `relu`.
+```
+let new_tensor = relu(tensor_one);
+```
+
 #### Note: Matrix multiplication on distributed tensors
 
 When performing matrix multiplication on distributed tensors, the parallelization (sharding or replication) of the result depends on the parallelization of the input tensors:
@@ -167,7 +173,10 @@ init_dev(1);
 init_dev(2);
 
 let tensor_one = tensor([[1, 2], [3, 4]], dev=1);
+visualize(tensor=tensor_one);
+
 let tensor_two = tensor([[2]], dev=1);
+visualize(tensor=tensor_two);
 
 let dg_1 = devices([[1, 2]]);
 shard(tensor=tensor_one, device_group=dg_1);
@@ -191,10 +200,9 @@ init_dev(1);
 init_dev(2);
 
 let tensor_one = tensor([[1, 2], [3, 4]], dev=1);
+visualize(tensor=tensor_one);
 let tensor_two = tensor([[2, 0], [0, 2]], dev=1);
-
-let new_tensor = matmul(tensor_one, tensor_two);
-visualize(tensor=new_tensor);
+visualize(tensor=tensor_two);
 
 let dg_1 = devices([[1, 2]]);
 shard(tensor=tensor_one, device_group=dg_1);
@@ -209,5 +217,53 @@ visualize(tensor=split_matmul);
 
 reduce(tensor=split_matmul, dst=1);
 visualize(tensor=split_matmul);
+```
+
+### 2 Layer MLP
+The example below demonstrates a 2layerMLP distributed training setup visualized.
+```
+init_dev(0);
+init_dev(1);
+
+let input = tensor([[2, -3, 0, 5, 2, 4, 0, 2]], dev=0);
+visualize(tensor=input);
+
+let weight_1 = tensor([[5, -1, 4, 1], [2, 3, 7, 2], [-4, -6, 2, 9], [9, -1, 3, 1], [2, 3, 4, 5], [-9, -3, 1, 4], [1, 2, 3, 4], [0, 9, 9, 9]], dev=0);
+visualize(tensor=weight_1);
+
+let dev_row = devices([[0, 1]]);
+let dev_col = devices([[0], [1]]);
+
+shard(tensor=input, device_group=dev_row);
+visualize(tensor=input);
+
+shard(tensor=weight_1, device_group=dev_col);
+visualize(tensor=weight_1);
+
+let layer_1 = matmul(input, weight_1);
+reduce(tensor=layer_1, dst=0);
+replicate(tensor=layer_1, device_group=dev_row);
+
+let relu1 = relu(layer_1);
+
+visualize(tensor=relu1);
+
+let weight_2 = tensor([[2, 1], [5, 6], [0, 1], [-3, 4]], dev=0);
+visualize(tensor=weight_2);
+shard(tensor=weight_2, device_group=dev_row);
+
+visualize(tensor=weight_2);
+
+let layer_2 = matmul(relu1, weight_2);
+
+visualize(tensor=layer_2);
+
+let relu2 = relu(layer_2);
+
+visualize(tensor=relu2);
+
+gather(tensor=relu2, dst=0);
+
+visualize(tensor=relu2);
 ```
 
