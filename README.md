@@ -1,5 +1,5 @@
 # DTensorViz
-DTensorViz is a domain specific language designed to help users learn and visualize operations on tensors, particularly operations that could be distributed in the context of distributed neural networks. Currently, DTensorViz supports only 2-dimensional tensors. For a more detailed breakdown of the language see [Documentation](docs/DTensorViz.pdf).
+DTensorViz is a domain specific language designed to help users learn and visualize operations on tensors, particularly operations that could be distributed in the context of distributed neural networks. Currently, DTensorViz supports only 2-dimensional tensors. For a more detailed breakdown of the language see [Documentation](docs/DTensorViz_DOC.pdf).
 
 ## Installation
 Before running this project, you need to install the following Python packages:
